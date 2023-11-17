@@ -1,6 +1,9 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<time.h>
+#include <unistd.h>
+#include<conio.h>
+#include<windows.h>
 
 struct job{
     char *work;
@@ -98,6 +101,75 @@ void run(struct queue **Q){
     }
 }
 
+void round_robin(struct queue **Q, int time_limit){
+    int count,time_to_run,condition,totalMinutes,totalSeconds,total_time,minutes,seconds;
+    struct job*temp;
+    struct job*check=(*Q)->last;
+    if(check==NULL){
+        printf("no tasks lined up\n");
+        return ;
+    }
+    while(1){
+        count=0;
+        condition=0;
+        temp=(*Q)->last;
+        while(check!=NULL){
+            if(strcmp(check->status,"incomplete")==0){
+                condition=1;
+                break;
+            }
+            check=check->prev;
+        }
+
+        if(condition==0){
+            printf("all jobs done\n");
+            return ;
+        }
+        while(temp!=NULL){
+            count++;
+            time_to_run=time_limit;
+            if(strcmp(temp->status,"complete")!=0){
+                printf("job->%s\n",temp->work);
+                totalMinutes=temp->time_m;
+                totalSeconds=temp->time_s;
+                total_time=totalMinutes * 60+totalSeconds ;
+                printf("(Press 'x' to exit)\n");
+                while(time_to_run>0){
+                    total_time--;
+
+                    if(total_time==0){
+                        temp->time_m=0;
+                        temp->time_s=0;
+                        strcpy(temp->status,"complete");
+                        printf("task completed\n");
+                        break;
+                    }
+                    minutes = total_time / 60;
+                    seconds = total_time % 60;
+                    printf("Time remaining: %02d:%02d \r", minutes, seconds);
+                    fflush(stdout);
+                    if (_kbhit()) {
+                        char ch = getchar();
+                        if (ch == 'x' || ch == 'X') {
+                            temp->time_m = total_time / 60;
+                            temp->time_s= total_time % 60;
+                            return ;
+                        }
+                    }
+                    time_to_run--;
+                    sleep(1);
+                }
+                temp->time_m=total_time / 60;
+                temp->time_s=total_time % 60;
+                printf("time remaining->%02d:%02d\n",temp->time_m,temp->time_s);
+                printf("......................................................\n");
+
+            }
+            temp=temp->prev;
+        }
+    }
+}
+
 struct queue *createQueue(){
     struct queue *newQueue=(struct queue*)malloc(sizeof(struct queue));
     newQueue->front=newQueue->last=NULL;
@@ -164,7 +236,6 @@ int addJob(struct queue **Q, char work[], char description[], int time_m,int tim
             current->next = newJob;
         }
     }
-
     return 1;
 }
 
@@ -394,12 +465,13 @@ int deleteAll(struct queue **Q){
 }
 
 int main() {
-    int ch,prio,i,t_s,t_m;
+    int ch,prio,i,t_s,t_m,opt,t;
     char exit_choice;
     char job_title[20];
     char job_description[100];
     struct queue *Q = createQueue();
 
+    printf("WELCOME TO JOB SCHEDULER\n");
     while(1){
         printf("Enter choice\n");
         printf("press 0 to run tasks\n");
@@ -416,7 +488,24 @@ int main() {
         switch(ch){
             case 0:
                 printf("OPTION 0 CHOOSEN\n");
-                run(&Q);
+                printf("choose how you wanna run the jobs\n");
+                printf("1: normal scheduling\n");
+                printf("2: round robin scheduling\n");
+                scanf("%d",&opt);
+                switch(opt){
+                    case 1:
+                        printf("normal scheduling chosen\n");
+                        run(&Q);
+                        break;
+                    case 2:
+                        printf("round robin scheduling chosen\n");
+                        printf("enter the time you wanna run for\n");
+                        scanf("%d",&t);
+                        round_robin(&Q,t);
+                        break;
+                    default:
+                        printf("invalid choice\n");
+                }
                 printf("**********************************************************************************************************\n");
                 break;
             case 1:
