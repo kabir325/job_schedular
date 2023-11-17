@@ -14,5 +14,5 @@ There are a set of operations that can be performed
 - cancel all jobs
 - run jobs
 - round robin scheduling
-- 
+ 
 future implementation may include using graphical user interface for now the program runs on terminal
