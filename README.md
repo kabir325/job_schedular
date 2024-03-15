@@ -4,7 +4,7 @@ this is a program made to replicate a job schedular using C language.
 
 The program uses a priority queue to store the jobs
 
-There are a set of operations that can be performed
+## Functionalities of the program
 - add job
 - edit job details
 - edit job priority
